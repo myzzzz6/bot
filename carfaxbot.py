@@ -1,4 +1,3 @@
-pip install python-telegram-bot telethon nest_asyncio
 import asyncio
 from telethon.errors import FloodWaitError
 from asyncio.exceptions import TimeoutError
