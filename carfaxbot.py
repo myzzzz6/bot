@@ -139,4 +139,4 @@ async def run():
 if __name__ == "__main__":
     import nest_asyncio
     nest_asyncio.apply()  # ✅ Apply fix for Jupyter event loop
-    await run()  # ✅ Call async function directly
+    asyncio.run(run())
