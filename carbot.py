@@ -1,3 +1,21 @@
+import logging
+
+# ✅ Configure logging to write to bot.log and show logs in console
+logging.basicConfig(
+    filename="bot.log",
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+)
+
+# ✅ Also log to console
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+console_handler.setFormatter(formatter)
+logging.getLogger().addHandler(console_handler)
+
+logging.info("🚀 Bot is starting...")
+
 import asyncio
 from telethon.errors import FloodWaitError
 from asyncio.exceptions import TimeoutError
