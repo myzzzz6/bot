@@ -4,7 +4,6 @@ from asyncio.exceptions import TimeoutError
 from telegram import Bot, Update
 from telegram.ext import ApplicationBuilder, CallbackContext, MessageHandler, filters
 import httpx
-import asyncio
 import os
 from telethon import TelegramClient, events
 from telethon.tl.types import MessageMediaDocument
