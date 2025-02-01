@@ -44,7 +44,7 @@ user_sessions = {}  # Maps Bot B's chat ID to the original user ID
 processed_messages = set()  # Prevent duplicate processing
 
 # ✅ List of Allowed Telegram User IDs
-ALLOWED_TELEGRAM_IDS = {1856500551,299027877,470715774}  # Replace with actual allowed IDs
+ALLOWED_TELEGRAM_IDS = {299027877,470715774}  # Replace with actual allowed IDs
 
 # ✅ Ensure session file is stored in a writable directory
 SESSION_FILE = "/tmp/session.session"  # Change to a writable location
