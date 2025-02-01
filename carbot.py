@@ -99,9 +99,11 @@ async def forward_to_bot_b(update: Update, context: CallbackContext):
 
    # ✅ Check if the user is in the allowed list
     if user_id not in ALLOWED_TELEGRAM_IDS:
-        await update.message.reply_text(
-    "❌ Access Denied. Please send your $30 monthly payment to Zelle: carfaxgod@mail.com, then send the payment screenshot to get access."
-)
+    await update.message.reply_text(
+        "❌ Access Denied. Please send your $30 monthly payment using the following link:\n\n"
+        "🔗 [Pay Here](https://buy.stripe.com/5kA8ACfSr8XxeIM288)\n\n"
+        "📸 After payment, send a screenshot to get access."
+    )
         print(f"🚫 Unauthorized access attempt by {user_id}.")
         return  # Stop processing further
     user_message = update.message.text
