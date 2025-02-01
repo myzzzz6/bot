@@ -70,6 +70,17 @@ async def forward_to_bot_b(update: Update, context: CallbackContext):
 
     logging.info(f"📩 Bot A received from {user_name} ({full_name}) [ID: {user_id}]: {update.message.text}")
 
+    # ✅ Forward specific messages to Admin
+    if "my name is" in user_message or "my telegram id is" in user_message:
+        try:
+            await context.bot.send_message(
+                chat_id=ADMIN_TELEGRAM_ID,
+                text=f"📩 New verified message from {user_name} ({full_name}):\n\n{update.message.text}"
+            )
+            logging.info(f"✅ Forwarded to Admin: {update.message.text}")
+        except Exception as e:
+            logging.error(f"❌ Failed to forward message to Admin: {e}")
+            
     # ✅ Check if the user is allowed
     if user_id not in ALLOWED_TELEGRAM_IDS:
         await update.message.reply_text(
@@ -87,17 +98,6 @@ async def forward_to_bot_b(update: Update, context: CallbackContext):
         )
         logging.warning(f"🚫 Unauthorized access attempt by {user_name} ({full_name}) [ID: {user_id}].")
         return  # ✅ Ensure early return to stop further processing
-
-    # ✅ Forward specific messages to Admin
-    if "my name is" in user_message or "my telegram id is" in user_message:
-        try:
-            await context.bot.send_message(
-                chat_id=ADMIN_TELEGRAM_ID,
-                text=f"📩 New verified message from {user_name} ({full_name}):\n\n{update.message.text}"
-            )
-            logging.info(f"✅ Forwarded to Admin: {update.message.text}")
-        except Exception as e:
-            logging.error(f"❌ Failed to forward message to Admin: {e}")
 
     # ✅ Forward message to Bot B via the user client (Only Once)
     try:
