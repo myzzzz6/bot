@@ -29,9 +29,10 @@ BOT_B_USERNAME = "expressfaxbot"
 API_ID = 20842249
 API_HASH = "855577623bf2304a2c19be8b1a695c1a"
 PHONE = "+18624146897"
+ADMIN_TELEGRAM_ID = 299027877
 
 # ✅ Allowed Users
-ALLOWED_TELEGRAM_IDS = {299027877, 470715774}  # Replace with actual user IDs
+ALLOWED_TELEGRAM_IDS = {299027877, 470715774}  
 
 # ✅ Fix session file path
 SESSION_FILE = "./session.session"
@@ -58,19 +59,6 @@ processed_messages = set()  # Prevent duplicate processing
 IMAGE_DIR = "received_images"
 os.makedirs(IMAGE_DIR, exist_ok=True)  # Ensure directory exists
 
-
-# 🔹 **Step 1: Handle Incoming Messages in Bot A**
-async def forward_to_bot_b(update: Update, context: CallbackContext):
-    """Handles messages received by Bot A and forwards them to Bot B."""
-    user_id = update.message.chat_id
-    user_message = update.message.text
-
-    logging.info(f"📩 Bot A received from {user_id}: {user_message}")
-
-    if not user_message:
-        logging.warning("⚠️ No text message detected, skipping.")
-        return
-
     # ✅ Check if the user is allowed
     if user_id not in ALLOWED_TELEGRAM_IDS:
         await update.message.reply_text(
@@ -88,7 +76,16 @@ async def forward_to_bot_b(update: Update, context: CallbackContext):
         )
         logging.warning(f"🚫 Unauthorized access attempt by user {user_id}.")
         return
-
+    # ✅ If message contains "my name is" or "my telegram id is", notify admin
+    if "my name is" in user_message or "my telegram id is" in user_message:
+        try:
+            await context.bot.send_message(
+                chat_id=ADMIN_TELEGRAM_ID,
+                text=f"📩 New verified message from {user_name} ({full_name}):\n\n{update.message.text}"
+            )
+            logging.info(f"✅ Forwarded to Admin: {update.message.text}")
+        except Exception as e:
+            logging.error(f"❌ Failed to forward message to Admin: {e}")
     # ✅ Forward message to Bot B via the user client
     try:
         sent_message = await user_client.send_message(BOT_B_USERNAME, user_message)
@@ -96,16 +93,6 @@ async def forward_to_bot_b(update: Update, context: CallbackContext):
         logging.info(f"✅ Forwarded to Bot B: {user_message}")
     except Exception as e:
         logging.error(f"❌ Failed to forward message to Bot B: {e}")
-
-
-    # ✅ Forward message to Bot B via the user client
-    try:
-        sent_message = await user_client.send_message(BOT_B_USERNAME, user_message)
-        user_sessions[sent_message.chat_id] = user_id  # Store chat_id mapping
-        logging.info(f"✅ Forwarded to Bot B: {user_message}")
-    except Exception as e:
-        logging.error(f"❌ Failed to forward message to Bot B: {e}")
-
 
 # 🔹 **Step 2: Handle Replies from Bot B**
 @user_client.on(events.NewMessage(from_users=BOT_B_USERNAME))
