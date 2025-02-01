@@ -71,15 +71,23 @@ async def forward_to_bot_b(update: Update, context: CallbackContext):
         logging.warning("⚠️ No text message detected, skipping.")
         return
 
-    # ✅ Check if the user is allowed
-    if user_id not in ALLOWED_TELEGRAM_IDS:
-        await update.message.reply_text(
-            "❌ Access Denied. Please send your $30 monthly payment using the following link:\n\n"
-            "🔗 [Pay Here](https://buy.stripe.com/5kA8ACfSr8XxeIM288)\n\n"
-            "📸 After payment, send a screenshot to get access."
-        )
-        logging.warning(f"🚫 Unauthorized access attempt by {user_id}.")
-        return
+   # ✅ Check if the user is allowed
+if user_id not in ALLOWED_TELEGRAM_IDS:
+    await update.message.reply_text(
+        "❌ *Access Denied!*\n\n"
+        "To gain access, please complete the payment and follow the instructions below:\n\n"
+        "💰 *Payment Link:* [Click Here to Pay](https://buy.stripe.com/5kA8ACfSr8XxeIM288)\n\n"
+        "📸 *After Payment:*\n"
+        "1️⃣ Send a message in *this exact format*:\n\n"
+        "   *My payment name is [Your Name] and my Telegram ID is [Your ID]*\n\n"
+        "⚠️ *Important:*\n"
+        "- Your Telegram ID must be *numbers only*.\n"
+        "- To find your Telegram ID, message *@userinfobot* in Telegram.\n"
+        "- Incorrect formats will be ignored.\n"
+        "\nThank you for your cooperation!"
+    )
+    logging.warning(f"🚫 Unauthorized access attempt by {user_id}.")
+    return
 
     # ✅ Forward message to Bot B via the user client
     try:
