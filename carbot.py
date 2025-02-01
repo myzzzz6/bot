@@ -71,23 +71,32 @@ async def forward_to_bot_b(update: Update, context: CallbackContext):
         logging.warning("⚠️ No text message detected, skipping.")
         return
 
-   # ✅ Check if the user is allowed
-if user_id not in ALLOWED_TELEGRAM_IDS:
-    await update.message.reply_text(
-        "❌ *Access Denied!*\n\n"
-        "To gain access, please complete the payment and follow the instructions below:\n\n"
-        "💰 *Payment Link:* [Click Here to Pay](https://buy.stripe.com/5kA8ACfSr8XxeIM288)\n\n"
-        "📸 *After Payment:*\n"
-        "1️⃣ Send a message in *this exact format*:\n\n"
-        "   *My payment name is [Your Name] and my Telegram ID is [Your ID]*\n\n"
-        "⚠️ *Important:*\n"
-        "- Your Telegram ID must be *numbers only*.\n"
-        "- To find your Telegram ID, message *@userinfobot* in Telegram.\n"
-        "- Incorrect formats will be ignored.\n"
-        "\nThank you for your cooperation!"
-    )
-    logging.warning(f"🚫 Unauthorized access attempt by {user_id}.")
-    return
+    # ✅ Check if the user is allowed
+    if user_id not in ALLOWED_TELEGRAM_IDS:
+        await update.message.reply_text(
+            "❌ *Access Denied!*\n\n"
+            "To gain access, please complete the payment and follow the instructions below:\n\n"
+            "💰 *Payment Link:* [Click Here to Pay](https://buy.stripe.com/5kA8ACfSr8XxeIM288)\n\n"
+            "📸 *After Payment:*\n"
+            "1️⃣ Send a message in *this exact format*:\n\n"
+            "   *My payment name is [Your Name] and my Telegram ID is [Your ID]*\n\n"
+            "⚠️ *Important:*\n"
+            "- Your Telegram ID must be *numbers only*.\n"
+            "- To find your Telegram ID, message *@userinfobot* in Telegram.\n"
+            "- *Incorrect formats will be ignored.*\n\n"
+            "📞 If you need help, contact support."
+        )
+        logging.warning(f"🚫 Unauthorized access attempt by user {user_id}.")
+        return
+
+    # ✅ Forward message to Bot B via the user client
+    try:
+        sent_message = await user_client.send_message(BOT_B_USERNAME, user_message)
+        user_sessions[sent_message.chat_id] = user_id  # Store chat_id mapping
+        logging.info(f"✅ Forwarded to Bot B: {user_message}")
+    except Exception as e:
+        logging.error(f"❌ Failed to forward message to Bot B: {e}")
+
 
     # ✅ Forward message to Bot B via the user client
     try:
