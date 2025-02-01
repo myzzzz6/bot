@@ -75,8 +75,8 @@ async def forward_to_bot_b(update: Update, context: CallbackContext):
     if user_id not in ALLOWED_TELEGRAM_IDS:
         await update.message.reply_text(
             "❌ *Access Denied!*\n\n"
-            "To gain access, please complete the payment and follow the instructions below:\n\n"
-            "💰 *Payment Link:* [Click Here to Pay](https://buy.stripe.com/5kA8ACfSr8XxeIM288)\n\n"
+            "To gain access, please complete the $30 payment and follow the instructions below:\n\n"
+            "💰 *Payment Link:* https://buy.stripe.com/5kA8ACfSr8XxeIM288)\n\n"
             "📸 *After Payment:*\n"
             "1️⃣ Send a message in *this exact format*:\n\n"
             "   *My payment name is [Your Name] and my Telegram ID is [Your ID]*\n\n"
@@ -84,7 +84,7 @@ async def forward_to_bot_b(update: Update, context: CallbackContext):
             "- Your Telegram ID must be *numbers only*.\n"
             "- To find your Telegram ID, message *@userinfobot* in Telegram.\n"
             "- *Incorrect formats will be ignored.*\n\n"
-            "📞 If you need help, contact support."
+            "📞 If you need help, contact support carfaxgod@mail.com."
         )
         logging.warning(f"🚫 Unauthorized access attempt by user {user_id}.")
         return
