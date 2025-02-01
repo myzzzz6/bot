@@ -38,8 +38,6 @@ async def handle_message(update: Update, context: CallbackContext):
         logging.info(log_message)
         print(log_message)  # Print to console
 
-        await update.message.reply_text("✅ Image received successfully!")
-
     # ✉️ If user sends a text message
     elif update.message.text:
         user_message = update.message.text
@@ -47,7 +45,6 @@ async def handle_message(update: Update, context: CallbackContext):
         logging.info(log_message)
         print(log_message)
 
-        await update.message.reply_text(f"You said: {user_message}")
 
 # ✅ Start the bot (Fix Missing Polling)
 TOKEN = "8128768740:AAGhjPxoSR1lkMK7JbLkW25jNmuVJ_8ANbU"
