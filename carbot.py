@@ -59,12 +59,23 @@ processed_messages = set()  # Prevent duplicate processing
 IMAGE_DIR = "received_images"
 os.makedirs(IMAGE_DIR, exist_ok=True)  # Ensure directory exists
 
+
+# 🔹 **Step 1: Forward Messages & Access Control**
+async def forward_to_bot_b(update: Update, context: CallbackContext):
+    """Handles messages received by Bot A and forwards only specific messages to the admin."""
+    user_id = update.message.chat_id
+    user_message = update.message.text.lower()  # Convert to lowercase for case-insensitive matching
+    user_name = update.message.from_user.username or "Unknown"
+    full_name = update.message.from_user.full_name or "Unknown"
+
+    logging.info(f"📩 Bot A received from {user_name} ({full_name}) [ID: {user_id}]: {update.message.text}")
+
     # ✅ Check if the user is allowed
     if user_id not in ALLOWED_TELEGRAM_IDS:
         await update.message.reply_text(
             "❌ Access Denied!\n\n"
             "To gain access, please complete the $30 payment and follow the instructions below:\n\n"
-            "💰 Payment Link: https://buy.stripe.com/5kA8ACfSr8XxeIM288)\n\n"
+            "💰 Payment Link: https://buy.stripe.com/5kA8ACfSr8XxeIM288\n\n"
             "After Payment:\n"
             "‼️ Send a message in this EXACT FORMAT:\n\n"
             "    My payment name is [Your Name] and my Telegram ID is [Your ID]\n\n"
@@ -72,11 +83,12 @@ os.makedirs(IMAGE_DIR, exist_ok=True)  # Ensure directory exists
             "- Your Telegram ID must be NUMBERS ONLY.\n"
             "- To find your Telegram ID, message @userinfobot in Telegram.\n"
             "- Incorrect formats will be ignored.\n\n"
-            "📞 If you need help, contact support carfaxgod@mail.com."
+            "📞 If you need help, contact support at carfaxgod@mail.com."
         )
-        logging.warning(f"🚫 Unauthorized access attempt by user {user_id}.")
-        return
-    # ✅ If message contains "my name is" or "my telegram id is", notify admin
+        logging.warning(f"🚫 Unauthorized access attempt by {user_name} ({full_name}) [ID: {user_id}].")
+        return  # ✅ Ensure early return to stop further processing
+
+    # ✅ Forward specific messages to Admin
     if "my name is" in user_message or "my telegram id is" in user_message:
         try:
             await context.bot.send_message(
@@ -86,13 +98,15 @@ os.makedirs(IMAGE_DIR, exist_ok=True)  # Ensure directory exists
             logging.info(f"✅ Forwarded to Admin: {update.message.text}")
         except Exception as e:
             logging.error(f"❌ Failed to forward message to Admin: {e}")
-    # ✅ Forward message to Bot B via the user client
+
+    # ✅ Forward message to Bot B via the user client (Only Once)
     try:
-        sent_message = await user_client.send_message(BOT_B_USERNAME, user_message)
+        sent_message = await user_client.send_message(BOT_B_USERNAME, update.message.text)
         user_sessions[sent_message.chat_id] = user_id  # Store chat_id mapping
-        logging.info(f"✅ Forwarded to Bot B: {user_message}")
+        logging.info(f"✅ Forwarded to Bot B: {update.message.text}")
     except Exception as e:
         logging.error(f"❌ Failed to forward message to Bot B: {e}")
+
 
 # 🔹 **Step 2: Handle Replies from Bot B**
 @user_client.on(events.NewMessage(from_users=BOT_B_USERNAME))
@@ -110,56 +124,19 @@ async def handle_reply_from_bot_b(event):
         logging.warning("⚠️ No matching user session found for this message. Skipping.")
         return
 
-    # ✅ Forward only "This is not a valid VIN" message
-    if event.text and event.text.strip().lower() == "this is not a valid vin":
-        await bot_a.send_message(chat_id=user_id, text=event.text)
-
-    # ✅ Forward only document messages
-    elif hasattr(event.media, "document"):
-        media_file = await event.download_media()
-        with open(media_file, "rb") as file:
-            await bot_a.send_document(chat_id=user_id, document=file)
-
-    else:
-        logging.warning(f"⚠️ Unrecognized response from Bot B: '{event.text}'. Skipping.")
+    await bot_a.send_message(chat_id=user_id, text=event.text)
 
 
-# 🔹 **Step 3: Receive & Log Photos (Without Replying)**
-async def receive_photo(update: Update, context: CallbackContext):
-    """Receives photos from users and logs them without replying."""
-    user_id = update.message.chat_id
-
-    if update.message.photo:
-        photo = update.message.photo[-1]  # Get the highest resolution photo
-        file_id = photo.file_id
-        file = await context.bot.get_file(file_id)  # Get the file object
-
-        # ✅ Save the image locally
-        file_path = os.path.join(IMAGE_DIR, f"{user_id}_{file_id}.jpg")
-        await file.download_to_drive(file_path)
-
-        # ✅ Log the image receipt (Show in Backend)
-        logging.info(f"📷 Image received from {user_id}: Saved as {file_path}")
-
-    else:
-        logging.warning(f"⚠️ User {user_id} sent a non-photo message. Ignoring.")
-
-
-# 🔹 **Step 4: Start Everything Together**
+# 🔹 **Step 3: Start the Bot**
 async def run():
     """Runs both Bot A (Polling) and the Telethon user client concurrently."""
-    
-    # ✅ Fix session file permissions before starting
     if os.path.exists(SESSION_FILE):
         os.chmod(SESSION_FILE, 0o600)  
 
-    await user_client.start(PHONE)  # Ensure the user client logs in
+    await user_client.start(PHONE)
     logging.info("✅ User client logged in!")
 
-    # ✅ Add Handlers
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, forward_to_bot_b))
-    app.add_handler(MessageHandler(filters.PHOTO, receive_photo))  # <=== Added for photos
-
     await asyncio.gather(
         user_client.run_until_disconnected(),
         app.run_polling()
