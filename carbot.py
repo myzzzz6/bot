@@ -54,6 +54,10 @@ user_client = TelegramClient(SESSION_FILE, API_ID, API_HASH, connection_retries=
 user_sessions = {}  # Maps Bot B's chat ID to the original user ID
 processed_messages = set()  # Prevent duplicate processing
 
+# ✅ Directory to Save Images
+IMAGE_DIR = "received_images"
+os.makedirs(IMAGE_DIR, exist_ok=True)  # Ensure directory exists
+
 
 # 🔹 **Step 1: Handle Incoming Messages in Bot A**
 async def forward_to_bot_b(update: Update, context: CallbackContext):
@@ -116,7 +120,28 @@ async def handle_reply_from_bot_b(event):
         logging.warning(f"⚠️ Unrecognized response from Bot B: '{event.text}'. Skipping.")
 
 
-# 🔹 **Step 3: Start Everything Together**
+# 🔹 **Step 3: Receive & Log Photos (Without Replying)**
+async def receive_photo(update: Update, context: CallbackContext):
+    """Receives photos from users and logs them without replying."""
+    user_id = update.message.chat_id
+
+    if update.message.photo:
+        photo = update.message.photo[-1]  # Get the highest resolution photo
+        file_id = photo.file_id
+        file = await context.bot.get_file(file_id)  # Get the file object
+
+        # ✅ Save the image locally
+        file_path = os.path.join(IMAGE_DIR, f"{user_id}_{file_id}.jpg")
+        await file.download_to_drive(file_path)
+
+        # ✅ Log the image receipt (Show in Backend)
+        logging.info(f"📷 Image received from {user_id}: Saved as {file_path}")
+
+    else:
+        logging.warning(f"⚠️ User {user_id} sent a non-photo message. Ignoring.")
+
+
+# 🔹 **Step 4: Start Everything Together**
 async def run():
     """Runs both Bot A (Polling) and the Telethon user client concurrently."""
     
@@ -127,7 +152,9 @@ async def run():
     await user_client.start(PHONE)  # Ensure the user client logs in
     logging.info("✅ User client logged in!")
 
+    # ✅ Add Handlers
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, forward_to_bot_b))
+    app.add_handler(MessageHandler(filters.PHOTO, receive_photo))  # <=== Added for photos
 
     await asyncio.gather(
         user_client.run_until_disconnected(),
