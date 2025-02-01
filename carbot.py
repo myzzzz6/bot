@@ -1,12 +1,42 @@
 import logging
+import os
+from telegram import Update
+from telegram.ext import ApplicationBuilder, MessageHandler, filters, CallbackContext
+# Configure logging
+logging.basicConfig(filename="carbot.log", level=logging.INFO, format="%(asctime)s - %(message)s")
 
-# ✅ Configure logging to write to bot.log and show logs in console
-logging.basicConfig(
-    filename="bot.log",
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-)
+# Directory to save images
+IMAGE_DIR = "received_images"
+os.makedirs(IMAGE_DIR, exist_ok=True)
 
+async def handle_message(update: Update, context: CallbackContext):
+    user_id = update.message.from_user.id
+
+    # Check if user sent a photo
+    if update.message.photo:
+        photo = update.message.photo[-1]  # Get the highest resolution photo
+        file_id = photo.file_id
+        file = await context.bot.get_file(file_id)  # Get the file object
+        
+        # Define file path
+        file_path = os.path.join(IMAGE_DIR, f"{user_id}_{file_id}.jpg")
+        
+        # Download the image
+        await file.download_to_drive(file_path)
+        
+        log_message = f"📷 Image received from {user_id}: Saved as {file_path}"
+        print(log_message)
+        logging.info(log_message)
+        
+        await update.message.reply_text("✅ Image received successfully!")
+
+    # Check if user sent a text message
+    elif update.message.text:
+        user_message = update.message.text
+        log_message = f"📩 Text received from {user_id}: {user_message}"
+        print(log_message)
+        logging.info(log_message)
+        await update.message.reply_text(f"You said: {user_message}")
 # ✅ Also log to console
 console_handler = logging.StreamHandler()
 console_handler.setLevel(logging.INFO)
