@@ -50,7 +50,7 @@ async def handle_message(update: Update, context: CallbackContext):
         await update.message.reply_text(f"You said: {user_message}")
 
 # ✅ Start the bot (Fix Missing Polling)
-TOKEN = "YOUR_BOT_TOKEN"
+TOKEN = "8128768740:AAGhjPxoSR1lkMK7JbLkW25jNmuVJ_8ANbU"
 app = ApplicationBuilder().token(TOKEN).build()
 
 # Add the message handler
