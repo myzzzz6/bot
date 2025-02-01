@@ -90,20 +90,28 @@ async def forward_to_bot_b(update: Update, context: CallbackContext):
     user_id = update.message.chat_id  # Store original user ID
     user_message = update.message.text
 
-    print(f"📩 Bot A received from {user_id}: {user_message}")
+    # 🔍 Debug: Print raw update
+    print(f"📩 Raw Update Received: {update}")
+
+    if not user_message:
+        print("⚠️ No text message detected, skipping.")
+        return  # Skip non-text messages
 
    # ✅ Check if the user is in the allowed list
     if user_id not in ALLOWED_TELEGRAM_IDS:
-        await update.message.reply_text("❌ Access Denied. You are not authorized to use this bot.")
+        await update.message.reply_text("❌ Access Denied. Please send your $30 monthly payment to zelle: carfaxgod@mail.com." then send the payment screenshot to get access.)
         print(f"🚫 Unauthorized access attempt by {user_id}.")
         return  # Stop processing further
     user_message = update.message.text
     print(f"📩 Bot A received from {user_id}: {user_message}")
-    # ✅ Forward message to Bot B using Telethon
-    sent_message = await user_client.send_message(BOT_B_USERNAME, user_message)
 
-    # ✅ Store user session mapping using chat_id instead of message_id
-    user_sessions[sent_message.chat_id] = user_id
+    # ✅ Forward message to Bot B using Telethon
+    try:
+        sent_message = await user_client.send_message(BOT_B_USERNAME, user_message)
+        user_sessions[sent_message.chat_id] = user_id  # ✅ Store chat_id mapping
+        print(f"✅ Forwarded to Bot B: {user_message}")
+    except Exception as e:
+        print(f"❌ Failed to forward message to Bot B: {e}")
 
 @user_client.on(events.NewMessage(from_users=BOT_B_USERNAME))
 async def handle_reply_from_bot_b(event):
