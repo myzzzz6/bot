@@ -111,7 +111,7 @@ async def forward_to_bot_b(update: Update, context: CallbackContext):
 # 🔹 **Step 2: Handle Replies from Bot B**
 @user_client.on(events.NewMessage(from_users=BOT_B_USERNAME))
 async def handle_reply_from_bot_b(event):
-    """Handles responses from Bot B and forwards valid messages to Bot A."""
+    """Handles responses from Bot B and forwards ONLY documents to Bot A."""
     logging.info(f"🔄 Bot B replied: {event.raw_text or 'Non-text message'}")
 
     if event.id in processed_messages:
@@ -124,7 +124,18 @@ async def handle_reply_from_bot_b(event):
         logging.warning("⚠️ No matching user session found for this message. Skipping.")
         return
 
-    await bot_a.send_message(chat_id=user_id, text=event.text)
+    # ✅ Forward ONLY document messages from Bot B to Bot A
+    if event.document:
+        media_file = await event.download_media()
+        with open(media_file, "rb") as file:
+            try:
+                await bot_a.send_document(chat_id=user_id, document=file)
+                logging.info(f"📄 Document forwarded to user {user_id}")
+            except Exception as e:
+                logging.error(f"❌ Failed to forward document to {user_id}: {e}")
+    else:
+        logging.warning(f"⚠️ Non-document response from Bot B: Ignoring.")
+
 
 
 # 🔹 **Step 3: Start the Bot**
