@@ -111,7 +111,7 @@ async def forward_to_bot_b(update: Update, context: CallbackContext):
 # 🔹 **Step 2: Handle Replies from Bot B**
 @user_client.on(events.NewMessage(from_users=BOT_B_USERNAME))
 async def handle_reply_from_bot_b(event):
-    """Handles responses from Bot B and forwards ONLY documents to Bot A."""
+    """Handles responses from Bot B and forwards ONLY documents or 'This is not a valid VIN' messages to Bot A."""
     logging.info(f"🔄 Bot B replied: {event.raw_text or 'Non-text message'}")
 
     if event.id in processed_messages:
@@ -124,8 +124,16 @@ async def handle_reply_from_bot_b(event):
         logging.warning("⚠️ No matching user session found for this message. Skipping.")
         return
 
+    # ✅ Forward ONLY "This is not a valid VIN" message
+    if event.text and event.text.strip().lower() == "this is not a valid vin":
+        try:
+            await bot_a.send_message(chat_id=user_id, text=event.text)
+            logging.info(f"📩 Sent 'This is not a valid VIN' message to user {user_id}")
+        except Exception as e:
+            logging.error(f"❌ Failed to forward VIN message to {user_id}: {e}")
+
     # ✅ Forward ONLY document messages from Bot B to Bot A
-    if event.document:
+    elif hasattr(event.media, "document"):
         media_file = await event.download_media()
         with open(media_file, "rb") as file:
             try:
@@ -133,8 +141,9 @@ async def handle_reply_from_bot_b(event):
                 logging.info(f"📄 Document forwarded to user {user_id}")
             except Exception as e:
                 logging.error(f"❌ Failed to forward document to {user_id}: {e}")
+
     else:
-        logging.warning(f"⚠️ Non-document response from Bot B: Ignoring.")
+        logging.warning(f"⚠️ Unrecognized response from Bot B. Ignoring.")
 
 
 
