@@ -125,12 +125,13 @@ async def handle_reply_from_bot_b(event):
         return
 
     # ✅ Forward ONLY "This is not a valid VIN" message
-    if event.text and event.text.strip().lower() == "this is not a valid vin":
+    if event.text and event.text.strip().lower() in ["this is not a valid vin", "el vin no es válido"]:
         try:
             await bot_a.send_message(chat_id=user_id, text=event.text)
-            logging.info(f"📩 Sent 'This is not a valid VIN' message to user {user_id}")
+            logging.info(f"📩 Sent VIN error message to user {user_id}")
         except Exception as e:
             logging.error(f"❌ Failed to forward VIN message to {user_id}: {e}")
+
 
     # ✅ Forward ONLY document messages from Bot B to Bot A
     elif hasattr(event.media, "document"):
