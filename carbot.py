@@ -1,3 +1,4 @@
+
 import logging
 import os
 import asyncio
@@ -32,7 +33,7 @@ PHONE = "+18624146897"
 ADMIN_TELEGRAM_ID = 299027877
 
 # ✅ Allowed Users
-ALLOWED_TELEGRAM_IDS = {299027877,470715774,5468665903}  
+ALLOWED_TELEGRAM_IDS = {299027877,5468665903}  
 
 # ✅ Fix session file path
 SESSION_FILE = "./session.session"
